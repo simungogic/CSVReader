@@ -31,8 +31,7 @@ public class Main extends HttpServlet {
 		System.out.println();
 		System.out.println("----------------------------------------------------------------------------------------------------------");
 		String uploadPath = getServletContext().getRealPath("");
-		File uploadDir = new File(uploadPath);
-	    Part part = request.getPart("csv_file");
+		Part part = request.getPart("csv_file");
 	    String fullPath = uploadPath + File.separator + part.getSubmittedFileName();
 	    part.write(fullPath);	    
 	    

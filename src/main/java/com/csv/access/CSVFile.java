@@ -22,7 +22,12 @@ public class CSVFile {
 		super();
 		this.csvPath = csvPath;
 		this.users = new ArrayList<User>();
-		this.columnNamesIndices = new HashMap<String, Integer>(){{
+		this.columnNamesIndices = new HashMap<String, Integer>(){/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
 			put("Ime", 0);
 			put("Prezime", 1);
 			put("DatumRodjenja", 2);
