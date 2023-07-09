@@ -3,10 +3,14 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.csv.controllers.UserController;
 import com.csv.database.User;
 
 public class CSVFile {
@@ -15,16 +19,14 @@ public class CSVFile {
 	private String csvPath;
 	private BufferedReader br;
 	private int rowCount = 0;
-	List<User> users;
+	private List<String> errors;
 	private HashMap<String, Integer> columnNamesIndices;
 	
 	public CSVFile(String csvPath) {
 		super();
 		this.csvPath = csvPath;
-		this.users = new ArrayList<User>();
-		this.columnNamesIndices = new HashMap<String, Integer>(){/**
-			 * 
-			 */
+		this.errors = new ArrayList<String>();
+		this.columnNamesIndices = new HashMap<String, Integer>(){
 			private static final long serialVersionUID = 1L;
 
 		{
@@ -39,21 +41,26 @@ public class CSVFile {
 		}
 	}
 	
-	public List<User> readCSVFile() {
+	public void readCSVFile() {
 		String headerLine;
 		try {
 			headerLine = this.br.readLine();
-			String[] headers = headerLine.split(",");
-			
+				
 			if(!checkExtension(this.csvPath)) {
-				System.out.println("Uploaded file is not CSV!");
-				return null;
+				addError("Uploaded file is not CSV!");
+				return;
 			}
 			else if(isEmpty(headerLine)) {
-		    	System.out.println("CSV file is empty!");
-		    	return null;
+				addError("CSV file is empty!");
+		    	return;
 		    }
-			else if(!checkHeaderNames(headers, this.columnNamesIndices)) return null;	
+			
+			String[] headers = headerLine.split(",");
+			if(!checkHeaderNames(headers, this.columnNamesIndices)) 
+			{
+				addError("CSV has to have 3 columns with header names: " + String.join(", ", this.columnNamesIndices.keySet()));
+				return;	
+			}
 			
 			this.columnNamesIndices = rearrangeColumnIndices(headers, this.columnNamesIndices);
 			
@@ -67,15 +74,20 @@ public class CSVFile {
 					String lastName = this.csvFields[this.columnNamesIndices.get("Prezime")].trim();
 					String dateOfBirth = this.csvFields[this.columnNamesIndices.get("DatumRodjenja")].trim();
 					if(isEmpty(firstName) || isEmpty(lastName) || isEmpty(dateOfBirth)) {
-						System.out.println("In row " + rowCount + " some of the fields are empty! This row is not inserted...");
+						addError("In row " + rowCount + " some of the fields are empty!");
 						row = br.readLine();
 						continue;
 					}
-					User user = new User(firstName, lastName, dateOfBirth);
-					users.add(user);
+					else if(!isDateOfBirthValid(dateOfBirth)) {
+						addError("In row " + rowCount + " date of birth is not in valid format!");
+						row = br.readLine();
+						continue;
+					}
+					
+					UserController userController = UserController.getUserController();
+					userController.addUser(new User(firstName, lastName, dateOfBirth));
 				}catch(ArrayIndexOutOfBoundsException ex) {
-					System.out.println();
-					System.out.println("In row " + rowCount + " some of the fields are missing! This row is not inserted...");
+					addError("In row " + rowCount + " some of the fields are missing!");
 				}
 				
 				row = br.readLine();
@@ -84,8 +96,16 @@ public class CSVFile {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		return users;
+	}
+	
+	private static boolean isDateOfBirthValid(String date) {
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+		try {
+            LocalDate.parse(date, dateFormatter);
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+		return true;
 	}
 
 	private static boolean isEmpty(String string) {
@@ -105,10 +125,6 @@ public class CSVFile {
 				System.out.print(headers[i]);
 				result = false;
 			}
-		}
-		
-		if(!result) {
-			 System.out.println("CSV has to have 3 columns with header names: " + String.join(", ", columnNamesIndices.keySet()));
 		}
 		
 		return result;
@@ -132,5 +148,13 @@ public class CSVFile {
 		}
 		
 		return columnNamesIndices;
+	}
+
+	public List<String> getErrors() {
+		return errors;
+	}
+
+	public void addError(String error) {
+		this.errors.add(error);
 	}
 }

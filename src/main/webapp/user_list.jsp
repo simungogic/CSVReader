@@ -1,4 +1,4 @@
-<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c"  %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,7 +33,7 @@
 </head>
 <body>
 <div>
-	<a href="/CSVReader/index.html">Back To Upload Page</a>
+	<a href="/CSVReader/index.jsp">Back To Upload Page</a>
 </div>
 <table id="users">
 	<tr>

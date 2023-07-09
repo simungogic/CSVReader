@@ -1,3 +1,4 @@
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -67,4 +68,19 @@
 		</form>
 	</div>
 </body>
+<script>
+	<c:if test = "${not empty errors}">
+		console.log("Rows not inserted: ");
+		<c:forEach items="${errors}" var="error">
+			console.log("${error}");
+		</c:forEach>
+	</c:if>
+	console.log("\n");
+	<c:if test = "${not empty users}">
+		console.log("Rows inserted: ");
+		<c:forEach items="${users}" var="user">
+			console.log("${user.firstName}" + ", " + "${user.lastName}" + ", " + "${user.dateOfBirth}");
+		</c:forEach>
+	</c:if>
+</script>
 </html>

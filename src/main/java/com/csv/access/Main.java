@@ -17,7 +17,7 @@ import com.csv.database.User;
 @WebServlet("/main")
 @MultipartConfig(
 			fileSizeThreshold = 1024 * 1024, // 1MB
-			maxFileSize = 1024 * 1024 * 10,  // 10MB
+			maxFileSize = 1024  * 1024 * 10,  // 10MB
 			maxRequestSize = 1024 * 1024 * 11 // 11MB
 		)
 public class Main extends HttpServlet {
@@ -28,26 +28,24 @@ public class Main extends HttpServlet {
     }
         
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println();
-		System.out.println("----------------------------------------------------------------------------------------------------------");
 		String uploadPath = getServletContext().getRealPath("");
 		Part part = request.getPart("csv_file");
 	    String fullPath = uploadPath + File.separator + part.getSubmittedFileName();
 	    part.write(fullPath);	    
 	    
+	    UserController.getUserController().clearUsers();
 	    CSVFile csvFile = new CSVFile(fullPath);
-	    List<User> users = csvFile.readCSVFile();
+	    csvFile.readCSVFile();
+	    List<User> users = UserController.getUserController().getUsers();
 	    
 	    if(users != null) { 
-	    	System.out.println("These rows are inserted in table Users: ");
 			users.forEach(user -> {
 				UserController.insert(user);
-				System.out.println(user.getFirstName().trim() + ", " + user.getLastName().trim() + ", " + user.getDateOfBirth().trim());
 			});
 	    }
-	    
-	    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/index.html");
-	    dispatcher.forward(request, response);
+	    request.setAttribute("users", users);
+	    request.setAttribute("errors", csvFile.getErrors());
+		request.getRequestDispatcher("/index.jsp").forward(request, response);
 	}
 
 }
